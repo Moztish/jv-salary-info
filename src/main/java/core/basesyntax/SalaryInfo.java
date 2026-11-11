@@ -2,8 +2,15 @@ package core.basesyntax;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 
 public class SalaryInfo {
+    private static final int DATE_INDEX = 0;
+    private static final int EMPLOYEE_NAME_INDEX = 1;
+    private static final int HOURS_INDEX = 2;
+    private static final int RATE_INDEX = 3;
+    private static final int EMPLOYEE_NOT_FOUND = -1;
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -19,34 +26,31 @@ public class SalaryInfo {
         LocalDate periodStart = LocalDate.parse(dateFrom, DATE_FORMAT);
         LocalDate periodEnd = LocalDate.parse(dateTo, DATE_FORMAT);
         int[] salaries = new int[names.length];
+        List<String> employeeNames = Arrays.asList(names);
 
         for (String record : data) {
             String[] parts = record.split("\\s+");
-            LocalDate workDate = LocalDate.parse(parts[0], DATE_FORMAT);
+            LocalDate workDate = LocalDate.parse(parts[DATE_INDEX], DATE_FORMAT);
             if (!workDate.isBefore(periodStart) && !workDate.isAfter(periodEnd)) {
-                String employeeName = parts[1];
-                int employeeIndex = -1;
-                for (int i = 0; i < names.length; i++) {
-                    if (names[i].equals(employeeName)) {
-                        employeeIndex = i;
-                        break;
-                    }
-                }
-                if (employeeIndex >= 0) {
-                    int hours = Integer.parseInt(parts[2]);
-                    int rate = Integer.parseInt(parts[3]);
+                String employeeName = parts[EMPLOYEE_NAME_INDEX];
+                int employeeIndex = employeeNames.indexOf(employeeName);
+                if (employeeIndex != EMPLOYEE_NOT_FOUND) {
+                    int hours = Integer.parseInt(parts[HOURS_INDEX]);
+                    int rate = Integer.parseInt(parts[RATE_INDEX]);
                     salaries[employeeIndex] += hours * rate;
                 }
             }
         }
 
-        for (int i = 0; i < names.length; i++) {
-            if (i > 0) {
+        boolean isFirstEmployee = true;
+        for (int employeeIndex = 0; employeeIndex < names.length; employeeIndex++) {
+            if (!isFirstEmployee) {
                 result.append(System.lineSeparator());
             }
-            result.append(names[i])
+            result.append(names[employeeIndex])
                     .append(" - ")
-                    .append(salaries[i]);
+                    .append(salaries[employeeIndex]);
+            isFirstEmployee = false;
         }
         return result.toString();
     }
